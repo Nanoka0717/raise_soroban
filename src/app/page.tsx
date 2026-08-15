@@ -15,17 +15,17 @@ export default function Home() {
           </p>
         </div>
       
-        <div className="mt-10 space-y-4">
+        <div className="mt-10 space-y-4 flex flex-col items-center">
         <Link
           href="/teacher/login"  
-          className="block w-full bg-orange-500 text-white py-4 rounded-xl text-lg font-semibold text-center"
+          className="block w-64 bg-orange-500 text-white py-4 rounded-lg text-lg font-semibold text-center"
           >
         👩‍🏫先生ログイン
          </Link>
 
          <Link
            href="/students/new/parent/login"
-           className="block w-full bg-blue-500 text-white py-4 rounded-xl text-lg font-semibold text-crnter">
+           className="block w-64 bg-blue-500 text-white py-4 rounded-lgs text-lg font-semibold text-crnter">
             
                　　　　　　 🧑‍🧑‍🧒保護者ログイン
 　　　　　　</Link>
