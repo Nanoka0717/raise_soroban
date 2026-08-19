@@ -18,14 +18,14 @@ export default function Home() {
         <div className="mt-10 space-y-4 flex flex-col items-center">
         <Link
           href="/teacher/login"  
-          className="w-80 h-24 bg-orange-500 text-white rounded-lg text-2xl font-semibold flex items-center justify-center whitespace-nowrap"
+          className="w-80 h-24 bg-orange-500 text-white rounded-lg text-2xl font-semibold flex items-center justify-center whitespace-nowrap leading-none"
           >
         👩‍🏫先生ログイン
          </Link>
 
          <Link
            href="/students/new/parent/login"
-           className="w-80 h-24 bg-blue-500 text-white rounded-lg text-2xl font-semibold flex items-crnter justify-center whitespace-nowrap">
+           className="w-80 h-24 bg-blue-500 text-white rounded-lg text-2xl font-semibold flex items-crnter justify-center whitespace-nowrap leading-none">
             
                　　　　　　 🧑‍🧑‍🧒保護者ログイン
 　　　　　　</Link>
