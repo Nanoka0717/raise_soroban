@@ -157,23 +157,6 @@ export default function AttendancePage() {
 
         <div className="space-y-5">
 
-          {/* 日付 */}
-          <div className="rounded-2xl bg-white p-5 shadow-md">
-
-            <label className="mb-2 block font-bold">
-              📅 日付
-            </label>
-
-            <input
-              type="date"
-              value={date}
-              onChange={(e) =>
-                setDate(e.target.value)
-              }
-              className="w-full rounded-lg border p-3"
-            />
-
-          </div>
 
           {/* 生徒名前 */}
           <div className="rounded-2xl bg-white p-5 shadow-md">
