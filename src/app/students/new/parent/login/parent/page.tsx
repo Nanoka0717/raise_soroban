@@ -15,8 +15,7 @@ export default function ParentPage() {
   const [name, setName] = useState("");
   const [hasNotification, setHasNotification] = useState(false);
 
-  useEffect(() => {
-    // ログインしているお子様の名前
+  const checkNotification = () => {
     const studentName =
       localStorage.getItem("parentStudentName");
 
@@ -24,24 +23,47 @@ export default function ParentPage() {
       setName(studentName);
     }
 
-    // お問い合わせを取得
     const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    // 自分のお問い合わせだけ取得
     const myContacts = savedContacts.filter(
       (contact: Contact) =>
         contact.name === studentName
     );
 
-    // 先生から返信があるか確認
-    const replyExists = myContacts.some(
-      (contact: Contact) =>
-        contact.reply && contact.reply.trim() !== ""
+    const readContactIds: number[] = JSON.parse(
+      localStorage.getItem("readContactIds") || "[]"
     );
 
-    setHasNotification(replyExists);
+    const unreadReply = myContacts.some(
+      (contact: Contact) =>
+        contact.reply &&
+        contact.reply.trim() !== "" &&
+        !readContactIds.includes(contact.id)
+    );
+
+    setHasNotification(unreadReply);
+  };
+
+  useEffect(() => {
+    checkNotification();
+
+    const handlePageShow = () => {
+      checkNotification();
+    };
+
+    const handleFocus = () => {
+      checkNotification();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   return (
@@ -67,28 +89,24 @@ export default function ParentPage() {
 
       <div className="space-y-4">
 
-        {/* お知らせ */}
         <Link href="/students/new/parent/login/parent/notice">
           <div className="bg-white rounded-xl shadow-md p-5">
             📢 お知らせ
           </div>
         </Link>
 
-        {/* 予約内容の確認 */}
         <Link href="/students/new/parent/login/parent/reservation/confirm">
           <div className="bg-white rounded-xl shadow-md p-5">
             📅 予約内容の確認
           </div>
         </Link>
 
-        {/* 月謝確認 */}
         <Link href="/students/new/parent/login/parent/tuition">
           <div className="bg-white rounded-xl shadow-md p-5">
             💰 月謝確認
           </div>
         </Link>
 
-        {/* 検定結果 */}
         <Link href="/students/new/parent/login/parent/exam">
           <div className="bg-white rounded-xl shadow-md p-5">
             🏆 検定結果
@@ -111,16 +129,16 @@ export default function ParentPage() {
         </Link>
 
       </div>
-      {/* ログイン画面へ戻るボタン　*/}
+
       <div className="mt-8">
         <Link
           href="/"
           className="rounded-xl border border-orange-500 bg-white px-5 py-3 font-bold text-orange-500 shadow-md"
-          >
-           ↩︎ ログイン画面へ戻る
-          </Link>
-
+        >
+          ↩︎ ログイン画面へ戻る
+        </Link>
       </div>
+
     </main>
   );
 }

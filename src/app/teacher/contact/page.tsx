@@ -7,6 +7,7 @@ type Contact = {
   id: number;
   name: string;
   message: string;
+  date: string;
   reply: string;
 };
 
@@ -18,11 +19,25 @@ export default function TeacherContactPage() {
   }>({});
 
   useEffect(() => {
-    const savedContacts = JSON.parse(
+    // お問い合わせを取得
+    const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
     setContacts(savedContacts);
+
+    // ==============================
+    // 先生が見たお問い合わせを既読にする
+    // ==============================
+
+    const readIds = savedContacts.map(
+      (contact: Contact) => contact.id
+    );
+
+    localStorage.setItem(
+      "teacherReadContactIds",
+      JSON.stringify(readIds)
+    );
   }, []);
 
   const sendReply = (id: number) => {
@@ -33,13 +48,14 @@ export default function TeacherContactPage() {
       return;
     }
 
-    const updatedContacts = contacts.map((contact) =>
-      contact.id === id
-        ? {
-            ...contact,
-            reply: text,
-          }
-        : contact
+    const updatedContacts = contacts.map(
+      (contact) =>
+        contact.id === id
+          ? {
+              ...contact,
+              reply: text,
+            }
+          : contact
     );
 
     setContacts(updatedContacts);
@@ -49,6 +65,7 @@ export default function TeacherContactPage() {
       JSON.stringify(updatedContacts)
     );
 
+    // 入力欄を空にする
     setReplyText({
       ...replyText,
       [id]: "",
@@ -62,17 +79,24 @@ export default function TeacherContactPage() {
 
       <div className="mx-auto max-w-md">
 
+        {/* タイトル */}
         <h1 className="mb-6 text-center text-3xl font-bold text-orange-500">
           📩 お問い合わせ
         </h1>
 
+        {/* お問い合わせがない場合 */}
         {contacts.length === 0 ? (
+
           <div className="rounded-2xl bg-white p-6 text-center shadow-md">
+
             <p className="text-gray-600">
               お問い合わせはありません。
             </p>
+
           </div>
+
         ) : (
+
           <div className="space-y-5">
 
             {contacts.map((contact) => (
@@ -82,10 +106,12 @@ export default function TeacherContactPage() {
                 className="rounded-2xl bg-white p-6 shadow-md"
               >
 
+                {/* 生徒名 */}
                 <h2 className="mb-4 text-xl font-bold">
                   👤 {contact.name}さん
                 </h2>
 
+                {/* お問い合わせ内容 */}
                 <div className="mb-4">
 
                   <p className="font-bold text-gray-600">
@@ -98,6 +124,7 @@ export default function TeacherContactPage() {
 
                 </div>
 
+                {/* 返信入力 */}
                 <div>
 
                   <p className="font-bold text-gray-600">
@@ -105,11 +132,14 @@ export default function TeacherContactPage() {
                   </p>
 
                   <textarea
-                    value={replyText[contact.id] || ""}
+                    value={
+                      replyText[contact.id] || ""
+                    }
                     onChange={(e) =>
                       setReplyText({
                         ...replyText,
-                        [contact.id]: e.target.value,
+                        [contact.id]:
+                          e.target.value,
                       })
                     }
                     placeholder="返信内容を入力してください"
@@ -117,8 +147,11 @@ export default function TeacherContactPage() {
                     rows={4}
                   />
 
+                  {/* 返信ボタン */}
                   <button
-                    onClick={() => sendReply(contact.id)}
+                    onClick={() =>
+                      sendReply(contact.id)
+                    }
                     className="mt-3 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
                   >
                     返信する
@@ -126,6 +159,7 @@ export default function TeacherContactPage() {
 
                 </div>
 
+                {/* 先生が以前送った返信 */}
                 {contact.reply && (
 
                   <div className="mt-5">
@@ -147,9 +181,10 @@ export default function TeacherContactPage() {
             ))}
 
           </div>
+
         )}
 
-        {/* 先生ページに戻るボタン */}
+        {/* 先生ページに戻る */}
         <div className="mt-8">
 
           <Link

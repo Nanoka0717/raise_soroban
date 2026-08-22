@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type Contact = {
   id: number;
@@ -12,14 +11,11 @@ type Contact = {
 };
 
 export default function ParentContactPage() {
-  const router = useRouter();
-
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
-    // ログインしているお子様の名前
     const studentName =
       localStorage.getItem("parentStudentName");
 
@@ -27,21 +23,48 @@ export default function ParentContactPage() {
       setName(studentName);
     }
 
-    // お問い合わせを取得
-    const savedContacts = JSON.parse(
+    const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    // 自分のお問い合わせだけ表示
+    // 自分のお問い合わせだけ
     const myContacts = savedContacts.filter(
       (contact: Contact) =>
         contact.name === studentName
     );
 
     setContacts(myContacts);
+
+    // ==========================
+    // ここが「既読」の処理
+    // ==========================
+
+    const readIds: number[] = JSON.parse(
+      localStorage.getItem("parentReadContactIds") || "[]"
+    );
+
+    // 先生から返信があるお問い合わせを既読にする
+    myContacts.forEach((contact: Contact) => {
+
+      if (
+        contact.reply &&
+        contact.reply.trim() !== "" &&
+        !readIds.includes(contact.id)
+      ) {
+        readIds.push(contact.id);
+      }
+
+    });
+
+    localStorage.setItem(
+      "parentReadContactIds",
+      JSON.stringify(readIds)
+    );
+
   }, []);
 
   const handleSubmit = () => {
+
     if (!message.trim()) {
       alert("お問い合わせ内容を入力してください");
       return;
@@ -54,13 +77,13 @@ export default function ParentContactPage() {
 
     const contact: Contact = {
       id: Date.now(),
-      name,
-      message,
+      name: name,
+      message: message,
       date: new Date().toLocaleString("ja-JP"),
       reply: "",
     };
 
-    const oldContacts = JSON.parse(
+    const oldContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
@@ -84,6 +107,13 @@ export default function ParentContactPage() {
     alert("お問い合わせを送信しました！");
   };
 
+  // トップページへ戻る
+  // location.hrefを使ってページを完全に読み直す
+  const goBack = () => {
+    window.location.href =
+      "/students/new/parent/login/parent";
+  };
+
   return (
     <main className="min-h-screen bg-orange-50 p-6">
 
@@ -93,6 +123,7 @@ export default function ParentContactPage() {
           📩 お問い合わせ
         </h1>
 
+        {/* 新しいお問い合わせ */}
         <div className="rounded-2xl bg-white p-6 shadow-md">
 
           <p className="mb-6 text-gray-600">
@@ -142,7 +173,7 @@ export default function ParentContactPage() {
 
         </div>
 
-        {/* 過去のお問い合わせ */}
+        {/* お問い合わせ履歴 */}
         <div className="mt-6">
 
           <h2 className="mb-4 text-xl font-bold text-orange-600">
@@ -150,15 +181,21 @@ export default function ParentContactPage() {
           </h2>
 
           {contacts.length === 0 ? (
+
             <div className="rounded-2xl bg-white p-5 shadow-md">
+
               <p className="text-gray-600">
                 お問い合わせ履歴はありません。
               </p>
+
             </div>
+
           ) : (
+
             <div className="space-y-4">
 
               {contacts.map((contact) => (
+
                 <div
                   key={contact.id}
                   className="rounded-2xl bg-white p-5 shadow-md"
@@ -177,6 +214,7 @@ export default function ParentContactPage() {
                   </p>
 
                   {contact.reply ? (
+
                     <div className="mt-4">
 
                       <p className="font-bold text-orange-600">
@@ -188,26 +226,28 @@ export default function ParentContactPage() {
                       </p>
 
                     </div>
+
                   ) : (
+
                     <p className="mt-4 text-sm text-gray-500">
                       先生からの返信をお待ちください。
                     </p>
+
                   )}
 
                 </div>
+
               ))}
 
             </div>
+
           )}
 
         </div>
 
+        {/* トップページに戻る */}
         <button
-          onClick={() =>
-            router.push(
-              "/students/new/parent/login/parent"
-            )
-          }
+          onClick={goBack}
           className="mt-6 w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"
         >
           トップページに戻る
@@ -218,4 +258,3 @@ export default function ParentContactPage() {
     </main>
   );
 }
-
