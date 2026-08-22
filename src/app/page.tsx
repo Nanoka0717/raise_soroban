@@ -27,7 +27,7 @@ export default function Home() {
            href="/students/new/parent/login"
            className="w-80 h-24 bg-blue-500 text-white rounded-lg text-2xl font-semibold flex items-center justify-center whitespace-nowrap leading-none">
             
-        　　🧑‍🧑‍🧒保護者ログイン
+        🧑‍🧑‍🧒保護者ログイン
          </Link>
 
         </div>
