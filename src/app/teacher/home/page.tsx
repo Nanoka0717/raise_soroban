@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Contact = {
   id: number;
@@ -12,6 +13,8 @@ type Contact = {
 };
 
 export default function Page() {
+  const router = useRouter();
+
   const [hasNewContact, setHasNewContact] = useState(false);
 
   const checkNewContact = () => {
@@ -72,9 +75,9 @@ export default function Page() {
           </Link>
 
           {/* 予約管理 */}
-          <Link
-            href="/teacher/reservation"
-            className="flex items-center justify-center"
+          <button
+            onClick={() => router.push("/teacher/reservation")}
+            className="flex w-full items-center justify-center"
           >
             📍 予約管理
 
@@ -85,7 +88,7 @@ export default function Page() {
                   新着
                 </span>
               )}
-          </Link>
+          </button>
 
           {/* 出席管理 */}
           <Link
