@@ -38,7 +38,7 @@ export default function ReservationConfirmPage() {
           <button
             onClick={() =>
               router.push(
-                "/students/new/parent/login/parent/reservation"
+                "/students/new/parent/login/parent/reservation2"
               )
             }
             className="mt-6 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
@@ -101,7 +101,7 @@ export default function ReservationConfirmPage() {
           <button
             onClick={() =>
               router.push(
-                "/students/new/parent/login/parent/reservation"
+                "/students/new/parent/login/parent/reservation2"
               )
             }
             className="w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"
