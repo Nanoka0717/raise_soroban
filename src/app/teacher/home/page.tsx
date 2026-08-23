@@ -55,27 +55,39 @@ export default function Page() {
 
         <div className="space-y-4">
 
-          <a
+          {/* 生徒一覧 */}
+          <Link
             href="/teacher/students"
             className="flex justify-center text-center"
           >
             🧑‍🎓 生徒一覧
-          </a>
+          </Link>
 
-          <a
+          {/* 新しい生徒を追加 */}
+          <Link
             href="/students/new"
             className="flex justify-center text-center"
           >
             ➕ 新しい生徒を追加
-          </a>
+          </Link>
 
-          <a
+          {/* 予約管理 */}
+          <Link
             href="/teacher/reservation"
-            className="flex justify-center text-center"
+            className="flex items-center justify-center"
           >
             📍 予約管理
-          </a>
 
+            {/* 新着表示はここに入れる */}
+            {typeof window !== "undefined" &&
+              localStorage.getItem("reservationChangeUnread") === "true" && (
+                <span className="ml-3 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                  新着
+                </span>
+              )}
+          </Link>
+
+          {/* 出席管理 */}
           <Link
             href="/teacher/attendance"
             className="flex justify-center text-center"
@@ -83,26 +95,29 @@ export default function Page() {
             📅 出席管理
           </Link>
 
-          <a
+          {/* 月謝管理 */}
+          <Link
             href="/teacher/tuition"
             className="flex justify-center text-center"
           >
             💰 月謝管理
-          </a>
+          </Link>
 
-          <a
+          {/* 検定結果 */}
+          <Link
             href="/teacher/exam"
             className="flex justify-center text-center"
           >
             📚 検定結果
-          </a>
+          </Link>
 
-          <a
+          {/* お知らせ */}
+          <Link
             href="/teacher/notice"
             className="flex justify-center text-center"
           >
             📢 お知らせ
-          </a>
+          </Link>
 
           {/* お問い合わせ */}
           <Link
@@ -118,6 +133,7 @@ export default function Page() {
             )}
           </Link>
 
+          {/* ログイン画面へ戻る */}
           <div className="mt-8 text-center">
 
             <Link
