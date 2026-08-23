@@ -45,12 +45,38 @@ export default function ReservationChangePage() {
       return;
     }
 
-    const updatedReservation = {
-      ...reservation,
+    // 先生ページに送る予約変更情報
+    const newChange = {
+      id: Date.now(),
+      name: reservation.name,
       grade: grade,
       changeFrom: fromDate,
       changeTo: toDate,
       time: time,
+      read: false,
+    };
+
+    // 以前の予約変更情報を取得
+    const oldChanges = JSON.parse(
+      localStorage.getItem("reservationChanges") || "[]"
+    );
+
+    // 新しい変更情報を追加
+    localStorage.setItem(
+      "reservationChanges",
+      JSON.stringify([
+        ...oldChanges,
+        newChange,
+      ])
+    );
+
+    // 保護者側の予約内容も更新
+    const updatedReservation = {
+      ...reservation,
+      grade: grade,
+      time: time,
+      changeFrom: fromDate,
+      changeTo: toDate,
     };
 
     sessionStorage.setItem(
@@ -101,6 +127,7 @@ export default function ReservationChangePage() {
 
           {/* 学年 */}
           <div>
+
             <label className="mb-2 block font-bold text-gray-600">
               学年
             </label>
@@ -124,10 +151,12 @@ export default function ReservationChangePage() {
               <option>小学5年生</option>
               <option>小学6年生</option>
             </select>
+
           </div>
 
           {/* 変更日 */}
           <div>
+
             <p className="mb-3 font-bold text-gray-600">
               変更日
             </p>
@@ -157,15 +186,18 @@ export default function ReservationChangePage() {
               />
 
             </div>
+
           </div>
 
           {/* 変更授業時間 */}
           <div>
+
             <p className="mb-3 font-bold text-gray-600">
               変更授業時間
             </p>
 
             <label className="mb-3 block">
+
               <input
                 type="radio"
                 name="time"
@@ -178,10 +210,13 @@ export default function ReservationChangePage() {
                 }
                 className="mr-2"
               />
+
               16:00〜17:00
+
             </label>
 
             <label className="block">
+
               <input
                 type="radio"
                 name="time"
@@ -194,8 +229,11 @@ export default function ReservationChangePage() {
                 }
                 className="mr-2"
               />
+
               17:10〜18:10
+
             </label>
+
           </div>
 
           {/* 予約内容を変更する */}
