@@ -9,12 +9,6 @@ type Reservation = {
   grade: string;
   day: string[];
   time: string;
-
-  changeFrom?: string;
-  changeTo?: string;
-  changeDate?: string;
-
-  originalTime?: string;
 };
 
 type ReservationChange = {
@@ -39,14 +33,14 @@ export default function ReservationPage() {
   const [hasNew, setHasNew] = useState(false);
 
   useEffect(() => {
-    // 通常の予約を取得
+    // 通常の予約
     const savedReservations = JSON.parse(
       localStorage.getItem("reservations") || "[]"
     );
 
     setReservations(savedReservations);
 
-    // 保護者からの予約変更を取得
+    // 予約変更
     const savedChanges = JSON.parse(
       localStorage.getItem("reservationChanges") || "[]"
     );
@@ -60,26 +54,35 @@ export default function ReservationPage() {
     );
 
     setHasNew(unreadExists);
-
-    // 予約管理ページを開いたら既読にする
-    if (savedChanges.length > 0) {
-      const readChanges = savedChanges.map(
-        (change: ReservationChange) => ({
-          ...change,
-          read: true,
-        })
-      );
-
-      localStorage.setItem(
-        "reservationChanges",
-        JSON.stringify(readChanges)
-      );
-
-      setChanges(readChanges);
-
-      setHasNew(false);
-    }
   }, []);
+
+  // 既読にする
+  const markAsRead = (id: number) => {
+    const updatedChanges = changes.map(
+      (change) =>
+        change.id === id
+          ? {
+              ...change,
+              read: true,
+            }
+          : change
+    );
+
+    localStorage.setItem(
+      "reservationChanges",
+      JSON.stringify(updatedChanges)
+    );
+
+    setChanges(updatedChanges);
+
+    // まだ未読が残っているか確認
+    const unreadExists = updatedChanges.some(
+      (change) =>
+        change.read === false
+    );
+
+    setHasNew(unreadExists);
+  };
 
   return (
     <main className="min-h-screen bg-orange-50 p-6">
@@ -91,7 +94,7 @@ export default function ReservationPage() {
           📍 予約管理
         </h1>
 
-        {/* 予約変更通知 */}
+        {/* 新着通知 */}
         {hasNew && (
           <div className="mb-6 rounded-2xl bg-white p-5 shadow-md">
 
@@ -127,7 +130,8 @@ export default function ReservationPage() {
                   className="rounded-2xl bg-white p-5 shadow-md"
                 >
 
-                  <div className="mb-4 flex items-center justify-between">
+                  {/* 名前 */}
+                  <div className="flex items-center justify-between">
 
                     <h3 className="text-xl font-bold">
                       👤 {change.name}さん
@@ -142,7 +146,7 @@ export default function ReservationPage() {
                   </div>
 
                   {/* 学年 */}
-                  <div className="mb-4">
+                  <div className="mt-4">
 
                     <p className="font-bold text-gray-600">
                       学年
@@ -155,7 +159,7 @@ export default function ReservationPage() {
                   </div>
 
                   {/* 変更日 */}
-                  <div className="mb-4">
+                  <div className="mt-4">
 
                     <p className="font-bold text-gray-600">
                       変更日
@@ -176,7 +180,7 @@ export default function ReservationPage() {
                   </div>
 
                   {/* 変更授業時間 */}
-                  <div>
+                  <div className="mt-4">
 
                     <p className="font-bold text-gray-600">
                       変更授業時間
@@ -188,11 +192,24 @@ export default function ReservationPage() {
 
                   </div>
 
-                  {/* 既読表示 */}
-                  {change.read && (
+                  {/* 未読の場合 */}
+                  {!change.read ? (
+
+                    <button
+                      onClick={() =>
+                        markAsRead(change.id)
+                      }
+                      className="mt-5 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
+                    >
+                      ✓ 既読にする
+                    </button>
+
+                  ) : (
+
                     <p className="mt-4 text-right text-sm text-gray-400">
                       ✓ 既読
                     </p>
+
                   )}
 
                 </div>
@@ -204,7 +221,7 @@ export default function ReservationPage() {
           </div>
         )}
 
-        {/* 通常の予約 */}
+        {/* 現在の予約 */}
         <div>
 
           <h2 className="mb-4 text-xl font-bold text-orange-600">
@@ -233,12 +250,10 @@ export default function ReservationPage() {
                     className="rounded-2xl bg-white p-5 shadow-md"
                   >
 
-                    {/* 名前 */}
                     <h3 className="mb-4 text-xl font-bold">
                       👤 {reservation.name}さん
                     </h3>
 
-                    {/* 学年 */}
                     <p>
                       <span className="font-bold">
                         学年：
@@ -246,7 +261,6 @@ export default function ReservationPage() {
                       {reservation.grade}
                     </p>
 
-                    {/* 曜日 */}
                     <p className="mt-2">
                       <span className="font-bold">
                         曜日：
@@ -254,7 +268,6 @@ export default function ReservationPage() {
                       {reservation.day?.join("・")}
                     </p>
 
-                    {/* 授業時間 */}
                     <p className="mt-2">
                       <span className="font-bold">
                         授業時間：
