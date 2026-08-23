@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 type Contact = {
   id: number;
@@ -12,38 +11,87 @@ type Contact = {
   reply: string;
 };
 
+type ReservationChange = {
+  id: number;
+  name: string;
+  grade: string;
+  changeFrom: string;
+  changeTo: string;
+  time: string;
+  read: boolean;
+};
+
 export default function Page() {
-  const router = useRouter();
+  const [hasNewContact, setHasNewContact] =
+    useState(false);
 
-  const [hasNewContact, setHasNewContact] = useState(false);
-
-  const checkNewContact = () => {
-    const contacts: Contact[] = JSON.parse(
-      localStorage.getItem("contacts") || "[]"
-    );
-
-    const readIds: number[] = JSON.parse(
-      localStorage.getItem("teacherReadContactIds") || "[]"
-    );
-
-    const unread = contacts.some(
-      (contact) => !readIds.includes(contact.id)
-    );
-
-    setHasNewContact(unread);
-  };
+  const [hasNewReservation, setHasNewReservation] =
+    useState(false);
 
   useEffect(() => {
-    checkNewContact();
+    const checkNotifications = () => {
 
-    const handleFocus = () => {
-      checkNewContact();
+      // =========================
+      // お問い合わせの新着
+      // =========================
+
+      const contacts: Contact[] = JSON.parse(
+        localStorage.getItem("contacts") || "[]"
+      );
+
+      const readIds: number[] = JSON.parse(
+        localStorage.getItem(
+          "teacherReadContactIds"
+        ) || "[]"
+      );
+
+      const unreadContact = contacts.some(
+        (contact) =>
+          !readIds.includes(contact.id)
+      );
+
+      setHasNewContact(unreadContact);
+
+
+      // =========================
+      // 予約変更の新着
+      // =========================
+
+      const changes: ReservationChange[] =
+        JSON.parse(
+          localStorage.getItem(
+            "reservationChanges"
+          ) || "[]"
+        );
+
+      const unreadReservation = changes.some(
+        (change) =>
+          change.read === false
+      );
+
+      setHasNewReservation(
+        unreadReservation
+      );
     };
 
-    window.addEventListener("focus", handleFocus);
+    // 最初に確認
+    checkNotifications();
+
+    // ページに戻ってきたときに確認
+    const handleFocus = () => {
+      checkNotifications();
+    };
+
+    window.addEventListener(
+      "focus",
+      handleFocus
+    );
 
     return () => {
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener(
+        "focus",
+        handleFocus
+      );
     };
   }, []);
 
@@ -66,6 +114,7 @@ export default function Page() {
             🧑‍🎓 生徒一覧
           </Link>
 
+
           {/* 新しい生徒を追加 */}
           <Link
             href="/students/new"
@@ -74,21 +123,26 @@ export default function Page() {
             ➕ 新しい生徒を追加
           </Link>
 
-          {/* 予約管理 */}
-          <button
-            onClick={() => router.push("/teacher/reservation")}
-            className="flex w-full items-center justify-center"
+
+          {/* =========================
+              予約管理
+          ========================= */}
+
+          <Link
+            href="/teacher/reservation"
+            className="flex items-center justify-center"
           >
+
             📍 予約管理
 
-            {/* 新着表示はここに入れる */}
-            {typeof window !== "undefined" &&
-              localStorage.getItem("reservationChangeUnread") === "true" && (
-                <span className="ml-3 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
-                  新着
-                </span>
-              )}
-          </button>
+            {hasNewReservation && (
+              <span className="ml-3 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                新着
+              </span>
+            )}
+
+          </Link>
+
 
           {/* 出席管理 */}
           <Link
@@ -98,6 +152,7 @@ export default function Page() {
             📅 出席管理
           </Link>
 
+
           {/* 月謝管理 */}
           <Link
             href="/teacher/tuition"
@@ -105,6 +160,7 @@ export default function Page() {
           >
             💰 月謝管理
           </Link>
+
 
           {/* 検定結果 */}
           <Link
@@ -114,6 +170,7 @@ export default function Page() {
             📚 検定結果
           </Link>
 
+
           {/* お知らせ */}
           <Link
             href="/teacher/notice"
@@ -122,11 +179,16 @@ export default function Page() {
             📢 お知らせ
           </Link>
 
-          {/* お問い合わせ */}
+
+          {/* =========================
+              お問い合わせ
+          ========================= */}
+
           <Link
             href="/teacher/contact"
             className="flex items-center justify-center"
           >
+
             📩 お問い合わせ
 
             {hasNewContact && (
@@ -134,9 +196,12 @@ export default function Page() {
                 新着
               </span>
             )}
+
           </Link>
 
+
           {/* ログイン画面へ戻る */}
+
           <div className="mt-8 text-center">
 
             <Link
