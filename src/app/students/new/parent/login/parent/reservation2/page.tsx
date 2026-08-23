@@ -18,10 +18,8 @@ export default function ReservationChangePage() {
     useState<Reservation | null>(null);
 
   const [grade, setGrade] = useState("");
+  const [changeDate, setChangeDate] = useState("");
   const [time, setTime] = useState("");
-
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     const savedReservation =
@@ -41,12 +39,7 @@ export default function ReservationChangePage() {
       return;
     }
 
-    if (
-      !grade ||
-      !time ||
-      !fromDate ||
-      !toDate
-    ) {
+    if (!grade || !changeDate || !time) {
       alert("全て入力してください。");
       return;
     }
@@ -54,9 +47,8 @@ export default function ReservationChangePage() {
     const updatedReservation = {
       ...reservation,
       grade: grade,
+      changeDate: changeDate,
       time: time,
-      changeFrom: fromDate,
-      changeTo: toDate,
     };
 
     sessionStorage.setItem(
@@ -132,10 +124,26 @@ export default function ReservationChangePage() {
             </select>
           </div>
 
-          {/* 授業時間 */}
+          {/* 変更日 */}
           <div>
-            <p className="mb-2 font-bold text-gray-600">
-              授業時間
+            <label className="mb-2 block font-bold text-gray-600">
+              変更日
+            </label>
+
+            <input
+              type="date"
+              value={changeDate}
+              onChange={(e) =>
+                setChangeDate(e.target.value)
+              }
+              className="w-full rounded-lg border p-3"
+            />
+          </div>
+
+          {/* 変更授業時間 */}
+          <div>
+            <p className="mb-3 font-bold text-gray-600">
+              変更授業時間
             </p>
 
             <label className="mb-3 block">
@@ -169,37 +177,6 @@ export default function ReservationChangePage() {
               />
               17:10〜18:10
             </label>
-          </div>
-
-          {/* 変更日時 */}
-          <div>
-
-            <label className="mb-2 block font-bold text-gray-600">
-              変更日時
-            </label>
-
-            <input
-              type="datetime-local"
-              value={fromDate}
-              onChange={(e) =>
-                setFromDate(e.target.value)
-              }
-              className="w-full rounded-lg border p-3"
-            />
-
-            <p className="my-3 text-center font-bold">
-              ↓
-            </p>
-
-            <input
-              type="datetime-local"
-              value={toDate}
-              onChange={(e) =>
-                setToDate(e.target.value)
-              }
-              className="w-full rounded-lg border p-3"
-            />
-
           </div>
 
           {/* 予約内容を変更する */}
