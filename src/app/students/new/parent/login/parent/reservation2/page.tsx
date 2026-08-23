@@ -18,7 +18,8 @@ export default function ReservationChangePage() {
     useState<Reservation | null>(null);
 
   const [grade, setGrade] = useState("");
-  const [changeDate, setChangeDate] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [time, setTime] = useState("");
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function ReservationChangePage() {
       return;
     }
 
-    if (!grade || !changeDate || !time) {
+    if (!grade || !fromDate || !toDate || !time) {
       alert("全て入力してください。");
       return;
     }
@@ -47,7 +48,8 @@ export default function ReservationChangePage() {
     const updatedReservation = {
       ...reservation,
       grade: grade,
-      changeDate: changeDate,
+      changeFrom: fromDate,
+      changeTo: toDate,
       time: time,
     };
 
@@ -126,18 +128,35 @@ export default function ReservationChangePage() {
 
           {/* 変更日 */}
           <div>
-            <label className="mb-2 block font-bold text-gray-600">
+            <p className="mb-3 font-bold text-gray-600">
               変更日
-            </label>
+            </p>
 
-            <input
-              type="date"
-              value={changeDate}
-              onChange={(e) =>
-                setChangeDate(e.target.value)
-              }
-              className="w-full rounded-lg border p-3"
-            />
+            <div className="flex items-center gap-3">
+
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) =>
+                  setFromDate(e.target.value)
+                }
+                className="min-w-0 flex-1 rounded-lg border p-3"
+              />
+
+              <span className="font-bold">
+                →
+              </span>
+
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) =>
+                  setToDate(e.target.value)
+                }
+                className="min-w-0 flex-1 rounded-lg border p-3"
+              />
+
+            </div>
           </div>
 
           {/* 変更授業時間 */}
