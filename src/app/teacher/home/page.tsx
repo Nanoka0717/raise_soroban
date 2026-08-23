@@ -11,87 +11,48 @@ type Contact = {
   reply: string;
 };
 
-type ReservationChange = {
-  id: number;
-  name: string;
-  grade: string;
-  changeFrom: string;
-  changeTo: string;
-  time: string;
-  read: boolean;
-};
-
 export default function Page() {
-  const [hasNewContact, setHasNewContact] =
-    useState(false);
+  const [hasNewContact, setHasNewContact] = useState(false);
+  const [hasNewReservation, setHasNewReservation] = useState(false);
 
-  const [hasNewReservation, setHasNewReservation] =
-    useState(false);
-
-  useEffect(() => {
-    const checkNotifications = () => {
-
-      // =========================
-      // お問い合わせの新着
-      // =========================
-
-      const contacts: Contact[] = JSON.parse(
-        localStorage.getItem("contacts") || "[]"
-      );
-
-      const readIds: number[] = JSON.parse(
-        localStorage.getItem(
-          "teacherReadContactIds"
-        ) || "[]"
-      );
-
-      const unreadContact = contacts.some(
-        (contact) =>
-          !readIds.includes(contact.id)
-      );
-
-      setHasNewContact(unreadContact);
-
-
-      // =========================
-      // 予約変更の新着
-      // =========================
-
-      const changes: ReservationChange[] =
-        JSON.parse(
-          localStorage.getItem(
-            "reservationChanges"
-          ) || "[]"
-        );
-
-      const unreadReservation = changes.some(
-        (change) =>
-          change.read === false
-      );
-
-      setHasNewReservation(
-        unreadReservation
-      );
-    };
-
-    // 最初に確認
-    checkNotifications();
-
-    // ページに戻ってきたときに確認
-    const handleFocus = () => {
-      checkNotifications();
-    };
-
-    window.addEventListener(
-      "focus",
-      handleFocus
+  // お問い合わせの新着を確認
+  const checkNewContact = () => {
+    const contacts: Contact[] = JSON.parse(
+      localStorage.getItem("contacts") || "[]"
     );
 
+    const readIds: number[] = JSON.parse(
+      localStorage.getItem("teacherReadContactIds") || "[]"
+    );
+
+    const unread = contacts.some(
+      (contact) => !readIds.includes(contact.id)
+    );
+
+    setHasNewContact(unread);
+  };
+
+  // 予約変更の新着を確認
+  const checkNewReservation = () => {
+    const unread =
+      localStorage.getItem("reservationChangeUnread") === "true";
+
+    setHasNewReservation(unread);
+  };
+
+  useEffect(() => {
+    checkNewContact();
+    checkNewReservation();
+
+    const handleFocus = () => {
+      checkNewContact();
+      checkNewReservation();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
     return () => {
-      window.removeEventListener(
-        "focus",
-        handleFocus
-      );
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 
@@ -114,7 +75,6 @@ export default function Page() {
             🧑‍🎓 生徒一覧
           </Link>
 
-
           {/* 新しい生徒を追加 */}
           <Link
             href="/students/new"
@@ -123,26 +83,21 @@ export default function Page() {
             ➕ 新しい生徒を追加
           </Link>
 
-
-          {/* =========================
-              予約管理
-          ========================= */}
-
+          {/* 予約管理 */}
           <Link
             href="/teacher/reservation"
-            className="flex items-center justify-center"
+            className="flex items-center justify-center gap-3 text-center"
           >
-
-            📍 予約管理
+            <span>
+              📍 予約管理
+            </span>
 
             {hasNewReservation && (
-              <span className="ml-3 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+              <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
                 新着
               </span>
             )}
-
           </Link>
-
 
           {/* 出席管理 */}
           <Link
@@ -152,7 +107,6 @@ export default function Page() {
             📅 出席管理
           </Link>
 
-
           {/* 月謝管理 */}
           <Link
             href="/teacher/tuition"
@@ -160,7 +114,6 @@ export default function Page() {
           >
             💰 月謝管理
           </Link>
-
 
           {/* 検定結果 */}
           <Link
@@ -170,7 +123,6 @@ export default function Page() {
             📚 検定結果
           </Link>
 
-
           {/* お知らせ */}
           <Link
             href="/teacher/notice"
@@ -179,38 +131,30 @@ export default function Page() {
             📢 お知らせ
           </Link>
 
-
-          {/* =========================
-              お問い合わせ
-          ========================= */}
-
+          {/* お問い合わせ */}
           <Link
             href="/teacher/contact"
-            className="flex items-center justify-center"
+            className="flex items-center justify-center gap-3 text-center"
           >
-
-            📩 お問い合わせ
+            <span>
+              📩 お問い合わせ
+            </span>
 
             {hasNewContact && (
-              <span className="ml-3 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+              <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
                 新着
               </span>
             )}
-
           </Link>
 
-
           {/* ログイン画面へ戻る */}
-
           <div className="mt-8 text-center">
-
             <Link
               href="/"
               className="inline-block rounded-xl border border-orange-500 bg-white px-5 py-3 font-bold text-orange-500 shadow-md"
             >
               ↩︎ ログイン画面へ戻る
             </Link>
-
           </div>
 
         </div>
