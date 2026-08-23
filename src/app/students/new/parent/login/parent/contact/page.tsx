@@ -17,54 +17,49 @@ export default function ParentContactPage() {
 
   useEffect(() => {
     const studentName =
-      localStorage.getItem("parentStudentName");
+      localStorage.getItem("parentStudentName") || "";
 
-    if (studentName) {
-      setName(studentName);
-    }
+    setName(studentName);
 
     const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    // 自分のお問い合わせだけ
+    // この保護者のお問い合わせだけ表示
     const myContacts = savedContacts.filter(
-      (contact: Contact) =>
-        contact.name === studentName
+      (contact) => contact.name === studentName
     );
 
     setContacts(myContacts);
 
     // ==========================
-    // ここが「既読」の処理
+    // お問い合わせページを開いたので既読
     // ==========================
 
     const readIds: number[] = JSON.parse(
       localStorage.getItem("parentReadContactIds") || "[]"
     );
 
-    // 先生から返信があるお問い合わせを既読にする
-    myContacts.forEach((contact: Contact) => {
+    const newReadIds = [...readIds];
 
+    myContacts.forEach((contact) => {
+      // 先生から返信があるものだけ既読にする
       if (
         contact.reply &&
         contact.reply.trim() !== "" &&
-        !readIds.includes(contact.id)
+        !newReadIds.includes(contact.id)
       ) {
-        readIds.push(contact.id);
+        newReadIds.push(contact.id);
       }
-
     });
 
     localStorage.setItem(
       "parentReadContactIds",
-      JSON.stringify(readIds)
+      JSON.stringify(newReadIds)
     );
-
   }, []);
 
   const handleSubmit = () => {
-
     if (!message.trim()) {
       alert("お問い合わせ内容を入力してください");
       return;
@@ -107,8 +102,6 @@ export default function ParentContactPage() {
     alert("お問い合わせを送信しました！");
   };
 
-  // トップページへ戻る
-  // location.hrefを使ってページを完全に読み直す
   const goBack = () => {
     window.location.href =
       "/students/new/parent/login/parent";
@@ -124,6 +117,7 @@ export default function ParentContactPage() {
         </h1>
 
         {/* 新しいお問い合わせ */}
+
         <div className="rounded-2xl bg-white p-6 shadow-md">
 
           <p className="mb-6 text-gray-600">
@@ -174,6 +168,7 @@ export default function ParentContactPage() {
         </div>
 
         {/* お問い合わせ履歴 */}
+
         <div className="mt-6">
 
           <h2 className="mb-4 text-xl font-bold text-orange-600">
@@ -246,6 +241,7 @@ export default function ParentContactPage() {
         </div>
 
         {/* トップページに戻る */}
+
         <button
           onClick={goBack}
           className="mt-6 w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"
