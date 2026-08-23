@@ -1,31 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ParentReservationChangePage() {
+type Reservation = {
+  name: string;
+  grade: string;
+  day: string[];
+  time: string;
+};
+
+export default function ReservationChangePage() {
   const router = useRouter();
 
+  const [reservation, setReservation] =
+    useState<Reservation | null>(null);
+
   const [grade, setGrade] = useState("");
+  const [time, setTime] = useState("");
 
   const [fromDate, setFromDate] = useState("");
-  const [fromTime, setFromTime] = useState("");
-
   const [toDate, setToDate] = useState("");
-  const [toTime, setToTime] = useState("");
 
-  const handleChange = () => {
+  useEffect(() => {
+    const savedReservation =
+      sessionStorage.getItem("reservation");
+
+    if (savedReservation) {
+      const data = JSON.parse(savedReservation);
+
+      setReservation(data);
+      setGrade(data.grade || "");
+      setTime(data.time || "");
+    }
+  }, []);
+
+  const changeReservation = () => {
+    if (!reservation) {
+      return;
+    }
+
     if (
       !grade ||
+      !time ||
       !fromDate ||
-      !fromTime ||
-      !toDate ||
-      !toTime
+      !toDate
     ) {
       alert("全て入力してください。");
       return;
     }
+
+    const updatedReservation = {
+      ...reservation,
+      grade: grade,
+      time: time,
+      changeFrom: fromDate,
+      changeTo: toDate,
+    };
+
+    sessionStorage.setItem(
+      "reservation",
+      JSON.stringify(updatedReservation)
+    );
 
     alert("予約内容を変更しました！");
 
@@ -34,21 +71,43 @@ export default function ParentReservationChangePage() {
     );
   };
 
+  if (!reservation) {
+    return (
+      <main className="min-h-screen bg-orange-50 p-6">
+
+        <div className="mx-auto max-w-md rounded-2xl bg-white p-6 text-center shadow-md">
+
+          <p className="text-gray-600">
+            予約内容がありません。
+          </p>
+
+          <Link
+            href="/students/new/parent/login/parent/reservation/confirm"
+            className="mt-6 block w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
+          >
+            予約内容の画面に戻る
+          </Link>
+
+        </div>
+
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-orange-50 p-6">
 
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md rounded-2xl bg-white p-6 shadow-md">
 
-        <h1 className="mb-6 text-center text-3xl font-bold text-orange-500">
-          📅 予約内容変更
+        <h1 className="mb-8 text-center text-3xl font-bold text-orange-500">
+          ✏️ 予約内容変更
         </h1>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
 
           {/* 学年 */}
-          <div className="rounded-2xl bg-white p-5 shadow-md">
-
-            <label className="mb-2 block font-bold">
+          <div>
+            <label className="mb-2 block font-bold text-gray-600">
               学年
             </label>
 
@@ -71,87 +130,81 @@ export default function ParentReservationChangePage() {
               <option>小学5年生</option>
               <option>小学6年生</option>
             </select>
-
           </div>
 
-          {/* 予約変更 */}
-          <div className="rounded-2xl bg-white p-5 shadow-md">
-
-            <p className="mb-4 font-bold">
-              予約変更
+          {/* 授業時間 */}
+          <div>
+            <p className="mb-2 font-bold text-gray-600">
+              授業時間
             </p>
 
-            {/* 変更前 */}
-            <div className="mb-4">
+            <label className="mb-3 block">
+              <input
+                type="radio"
+                name="time"
+                value="16:00〜17:00"
+                checked={
+                  time === "16:00〜17:00"
+                }
+                onChange={(e) =>
+                  setTime(e.target.value)
+                }
+                className="mr-2"
+              />
+              16:00〜17:00
+            </label>
 
-              <p className="mb-2 text-sm text-gray-500">
-                変更前
-              </p>
+            <label className="block">
+              <input
+                type="radio"
+                name="time"
+                value="17:10〜18:10"
+                checked={
+                  time === "17:10〜18:10"
+                }
+                onChange={(e) =>
+                  setTime(e.target.value)
+                }
+                className="mr-2"
+              />
+              17:10〜18:10
+            </label>
+          </div>
 
-              <div className="space-y-2">
+          {/* 変更日時 */}
+          <div>
 
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) =>
-                    setFromDate(e.target.value)
-                  }
-                  className="w-full rounded-lg border p-3"
-                />
+            <label className="mb-2 block font-bold text-gray-600">
+              変更日時
+            </label>
 
-                <input
-                  type="time"
-                  value={fromTime}
-                  onChange={(e) =>
-                    setFromTime(e.target.value)
-                  }
-                  className="w-full rounded-lg border p-3"
-                />
+            <input
+              type="datetime-local"
+              value={fromDate}
+              onChange={(e) =>
+                setFromDate(e.target.value)
+              }
+              className="w-full rounded-lg border p-3"
+            />
 
-              </div>
-
-            </div>
-
-            <p className="mb-4 text-center text-xl font-bold">
+            <p className="my-3 text-center font-bold">
               ↓
             </p>
 
-            {/* 変更後 */}
-            <div>
-
-              <p className="mb-2 text-sm text-gray-500">
-                変更後
-              </p>
-
-              <div className="space-y-2">
-
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) =>
-                    setToDate(e.target.value)
-                  }
-                  className="w-full rounded-lg border p-3"
-                />
-
-                <input
-                  type="time"
-                  value={toTime}
-                  onChange={(e) =>
-                    setToTime(e.target.value)
-                  }
-                  className="w-full rounded-lg border p-3"
-                />
-
-              </div>
-
-            </div>
+            <input
+              type="datetime-local"
+              value={toDate}
+              onChange={(e) =>
+                setToDate(e.target.value)
+              }
+              className="w-full rounded-lg border p-3"
+            />
 
           </div>
 
           {/* 予約内容を変更する */}
           <button
-            onClick={handleChange}
+            onClick={changeReservation}
             className="w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
           >
             予約内容を変更する
