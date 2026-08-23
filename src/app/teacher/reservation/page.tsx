@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+type Reservation = {
+  name: string;
+  phone?: string;
+  grade: string;
+  day: string[];
+  time: string;
+};
+
 type ReservationChange = {
   id: number;
   name: string;
@@ -14,132 +22,191 @@ type ReservationChange = {
 };
 
 export default function Page() {
-  const [hasNewReservation, setHasNewReservation] =
-    useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservationChanges, setReservationChanges] = useState<
+    ReservationChange[]
+  >([]);
 
   useEffect(() => {
-    const checkNewReservation = () => {
-      const savedChanges: ReservationChange[] =
-        JSON.parse(
-          localStorage.getItem("reservationChanges") || "[]"
-        );
+    // 予約一覧を読み込む
+    const savedReservations: Reservation[] = JSON.parse(
+      localStorage.getItem("reservations") || "[]"
+    );
 
-      const unread = savedChanges.some(
-        (change) => change.read === false
-      );
+    setReservations(savedReservations);
 
-      setHasNewReservation(unread);
-    };
+    // 予約変更を読み込む
+    const savedChanges: ReservationChange[] = JSON.parse(
+      localStorage.getItem("reservationChanges") || "[]"
+    );
 
-    // 最初に確認
-    checkNewReservation();
+    // 表示する
+    setReservationChanges(savedChanges);
 
-    // ページに戻ってきたときに確認
-    const handleFocus = () => {
-      checkNewReservation();
-    };
+    // 予約管理ページを開いたので既読にする
+    const readChanges = savedChanges.map((change) => ({
+      ...change,
+      read: true,
+    }));
 
-    window.addEventListener("focus", handleFocus);
+    localStorage.setItem(
+      "reservationChanges",
+      JSON.stringify(readChanges)
+    );
 
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
+    // 画面上も既読状態にする
+    setReservationChanges(readChanges);
+
+    // 先生ページの新着表示も消す
+    localStorage.setItem(
+      "reservationChangeUnread",
+      "false"
+    );
   }, []);
 
   return (
-    <main className="min-h-screen w-full bg-orange-50 px-4 py-8">
+    <main className="min-h-screen bg-orange-50 px-4 py-8">
+
       <div className="mx-auto w-full max-w-md">
 
+        {/* タイトル */}
         <h1 className="mb-8 text-center text-3xl font-bold text-orange-500">
-          先生ページ
+          📍 予約管理
         </h1>
 
-        <div className="space-y-4">
+        {/* 予約変更のお知らせ */}
+        {reservationChanges.length > 0 && (
+          <div className="mb-8 rounded-2xl bg-white p-5 shadow-md">
 
-          {/* 生徒一覧 */}
-          <a
-            href="/teacher/students"
-            className="flex justify-center text-center"
-          >
-            🧑‍🎓 生徒一覧
-          </a>
+            <h2 className="mb-5 text-xl font-bold text-orange-500">
+              🔔 予約変更
+            </h2>
 
-          {/* 新しい生徒を追加 */}
-          <a
-            href="/students/new"
-            className="flex justify-center text-center"
-          >
-            ➕ 新しい生徒を追加
-          </a>
+            <div className="space-y-5">
 
-          {/* 予約管理 */}
-          <Link
-            href="/teacher/reservation"
-            className="flex items-center justify-center gap-3 text-center"
-          >
-            <span>
-              📍 予約管理
-            </span>
+              {reservationChanges.map((change) => (
+                <div
+                  key={change.id}
+                  className="rounded-xl border border-orange-200 p-4"
+                >
 
-            {hasNewReservation && (
-              <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
-                新着
-              </span>
-            )}
-          </Link>
+                  <div className="mb-3 flex items-center justify-between">
 
-          {/* 出席管理 */}
-          <Link
-            href="/teacher/attendance"
-            className="flex justify-center text-center"
-          >
-            📅 出席管理
-          </Link>
+                    <p className="text-lg font-bold">
+                      {change.name}さん
+                    </p>
 
-          {/* 月謝管理 */}
-          <a
-            href="/teacher/tuition"
-            className="flex justify-center text-center"
-          >
-            💰 月謝管理
-          </a>
+                    {!change.read && (
+                      <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                        新着
+                      </span>
+                    )}
 
-          {/* 検定結果 */}
-          <a
-            href="/teacher/exam"
-            className="flex justify-center text-center"
-          >
-            📚 検定結果
-          </a>
+                  </div>
 
-          {/* お知らせ */}
-          <a
-            href="/teacher/notice"
-            className="flex justify-center text-center"
-          >
-            📢 お知らせ
-          </a>
+                  <p className="mb-2">
+                    <span className="font-bold">
+                      学年：
+                    </span>
+                    {change.grade}
+                  </p>
 
-          {/* お問い合わせ */}
-          <Link
-            href="/teacher/contact"
-            className="flex justify-center text-center"
-          >
-            📩 お問い合わせ
-          </Link>
+                  <p className="mb-2">
+                    <span className="font-bold">
+                      変更日：
+                    </span>
+                    {change.changeFrom}
+                    {" → "}
+                    {change.changeTo}
+                  </p>
 
-          {/* ログイン画面へ戻る */}
-          <div className="mt-8 text-center">
-            <Link
-              href="/"
-              className="inline-block rounded-xl border border-orange-500 bg-white px-5 py-3 font-bold text-orange-500 shadow-md"
-            >
-              ↩︎ ログイン画面へ戻る
-            </Link>
+                  <p>
+                    <span className="font-bold">
+                      変更授業時間：
+                    </span>
+                    {change.time}
+                  </p>
+
+                </div>
+              ))}
+
+            </div>
           </div>
+        )}
+
+        {/* 現在の予約 */}
+        <div className="rounded-2xl bg-white p-5 shadow-md">
+
+          <h2 className="mb-5 text-xl font-bold text-orange-500">
+            📋 現在の予約
+          </h2>
+
+          {reservations.length === 0 ? (
+
+            <p className="py-5 text-center text-gray-500">
+              現在予約はありません。
+            </p>
+
+          ) : (
+
+            <div className="space-y-5">
+
+              {reservations.map((reservation, index) => (
+
+                <div
+                  key={index}
+                  className="rounded-xl border border-gray-200 p-4"
+                >
+
+                  <p className="mb-2 text-lg font-bold">
+                    {reservation.name}さん
+                  </p>
+
+                  <p className="mb-2">
+                    <span className="font-bold">
+                      学年：
+                    </span>
+                    {reservation.grade}
+                  </p>
+
+                  <p className="mb-2">
+                    <span className="font-bold">
+                      曜日：
+                    </span>
+                    {reservation.day.join("・")}
+                  </p>
+
+                  <p>
+                    <span className="font-bold">
+                      授業時間：
+                    </span>
+                    {reservation.time}
+                  </p>
+
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
 
         </div>
+
+        {/* 戻る */}
+        <div className="mt-8 text-center">
+
+          <Link
+            href="/teacher/home"
+            className="inline-block rounded-xl border border-orange-500 bg-white px-6 py-3 font-bold text-orange-500 shadow-md"
+          >
+            ↩︎ 先生ページに戻る
+          </Link>
+
+        </div>
+
       </div>
+
     </main>
   );
 }
