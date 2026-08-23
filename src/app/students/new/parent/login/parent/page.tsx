@@ -32,8 +32,9 @@ export default function ParentPage() {
         contact.name === studentName
     );
 
+    // ★ お問い合わせページと同じ名前にする
     const readContactIds: number[] = JSON.parse(
-      localStorage.getItem("readContactIds") || "[]"
+      localStorage.getItem("parentReadContactIds") || "[]"
     );
 
     const unreadReply = myContacts.some(
@@ -57,23 +58,37 @@ export default function ParentPage() {
       checkNotification();
     };
 
-    window.addEventListener("pageshow", handlePageShow);
-    window.addEventListener("focus", handleFocus);
+    window.addEventListener(
+      "pageshow",
+      handlePageShow
+    );
+
+    window.addEventListener(
+      "focus",
+      handleFocus
+    );
 
     return () => {
-      window.removeEventListener("pageshow", handlePageShow);
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener(
+        "pageshow",
+        handlePageShow
+      );
+
+      window.removeEventListener(
+        "focus",
+        handleFocus
+      );
     };
   }, []);
 
   return (
     <main className="min-h-screen bg-orange-50 p-6">
 
-      <h1 className="text-center text-3xl font-bold text-orange-600 mb-6">
+      <h1 className="mb-6 text-center text-3xl font-bold text-orange-600">
         🧮 Raiseそろばん
       </h1>
 
-      <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+      <div className="mb-6 rounded-2xl bg-white p-6 shadow-md">
 
         <h2 className="text-xl font-bold">
           {name
@@ -89,33 +104,47 @@ export default function ParentPage() {
 
       <div className="space-y-4">
 
-        <Link href="/students/new/parent/login/parent/notice">
-          <div className="bg-white rounded-xl shadow-md p-5">
+        {/* お知らせ */}
+        <Link
+          href="/students/new/parent/login/parent/notice"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
             📢 お知らせ
           </div>
         </Link>
 
-        <Link href="/students/new/parent/login/parent/reservation/confirm">
-          <div className="bg-white rounded-xl shadow-md p-5">
+        {/* 予約内容の確認 */}
+        <Link
+          href="/students/new/parent/login/parent/reservation/confirm"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
             📅 予約内容の確認
           </div>
         </Link>
 
-        <Link href="/students/new/parent/login/parent/tuition">
-          <div className="bg-white rounded-xl shadow-md p-5">
+        {/* 月謝確認 */}
+        <Link
+          href="/students/new/parent/login/parent/tuition"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
             💰 月謝確認
           </div>
         </Link>
 
-        <Link href="/students/new/parent/login/parent/exam">
-          <div className="bg-white rounded-xl shadow-md p-5">
+        {/* 検定結果 */}
+        <Link
+          href="/students/new/parent/login/parent/exam"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
             🏆 検定結果
           </div>
         </Link>
 
         {/* お問い合わせ */}
-        <Link href="/students/new/parent/login/parent/contact">
-          <div className="relative bg-white rounded-xl shadow-md p-5">
+        <Link
+          href="/students/new/parent/login/parent/contact"
+        >
+          <div className="relative rounded-xl bg-white p-5 shadow-md">
 
             ✉️ お問い合わせ
 
@@ -130,13 +159,16 @@ export default function ParentPage() {
 
       </div>
 
+      {/* ログイン画面へ戻る */}
       <div className="mt-8">
+
         <Link
           href="/"
           className="rounded-xl border border-orange-500 bg-white px-5 py-3 font-bold text-orange-500 shadow-md"
         >
           ↩︎ ログイン画面へ戻る
         </Link>
+
       </div>
 
     </main>
