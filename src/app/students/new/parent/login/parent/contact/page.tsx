@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Contact = {
   id: number;
@@ -10,101 +11,82 @@ type Contact = {
   reply: string;
 };
 
-export default function ParentContactPage() {
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
+export default function TeacherContactPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
 
+  const [replyText, setReplyText] = useState<{
+    [key: number]: string;
+  }>({});
+
   useEffect(() => {
-    const studentName =
-      localStorage.getItem("parentStudentName") || "";
-
-    setName(studentName);
-
     const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    // この保護者のお問い合わせだけ表示
-    const myContacts = savedContacts.filter(
-      (contact) => contact.name === studentName
+    setContacts(savedContacts);
+
+    // 先生が見たお問い合わせを既読にする
+    const readIds = savedContacts.map(
+      (contact: Contact) => contact.id
     );
-
-    setContacts(myContacts);
-
-    // ==========================
-    // お問い合わせページを開いたので既読
-    // ==========================
-
-    const readIds: number[] = JSON.parse(
-      localStorage.getItem("parentReadContactIds") || "[]"
-    );
-
-    const newReadIds = [...readIds];
-
-    myContacts.forEach((contact) => {
-      // 先生から返信があるものだけ既読にする
-      if (
-        contact.reply &&
-        contact.reply.trim() !== "" &&
-        !newReadIds.includes(contact.id)
-      ) {
-        newReadIds.push(contact.id);
-      }
-    });
 
     localStorage.setItem(
-      "parentReadContactIds",
-      JSON.stringify(newReadIds)
+      "teacherReadContactIds",
+      JSON.stringify(readIds)
     );
   }, []);
 
-  const handleSubmit = () => {
-    if (!message.trim()) {
-      alert("お問い合わせ内容を入力してください");
+  const sendReply = (id: number) => {
+    const text = replyText[id];
+
+    if (!text || !text.trim()) {
+      alert("返信内容を入力してください。");
       return;
     }
 
-    if (!name) {
-      alert("お子様の名前が確認できません");
-      return;
-    }
-
-    const contact: Contact = {
-      id: Date.now(),
-      name: name,
-      message: message,
-      date: new Date().toLocaleString("ja-JP"),
-      reply: "",
-    };
-
-    const oldContacts: Contact[] = JSON.parse(
-      localStorage.getItem("contacts") || "[]"
+    // お問い合わせを更新
+    const updatedContacts = contacts.map(
+      (contact) =>
+        contact.id === id
+          ? {
+              ...contact,
+              reply: text,
+            }
+          : contact
     );
 
-    const newContacts = [
-      ...oldContacts,
-      contact,
-    ];
+    setContacts(updatedContacts);
 
     localStorage.setItem(
       "contacts",
-      JSON.stringify(newContacts)
+      JSON.stringify(updatedContacts)
     );
 
-    setContacts([
-      ...contacts,
-      contact,
-    ]);
+    // =====================================
+    // 保護者側に「新着」を付ける
+    // =====================================
 
-    setMessage("");
+    const unreadIds: number[] = JSON.parse(
+      localStorage.getItem("parentUnreadContactIds") || "[]"
+    );
 
-    alert("お問い合わせを送信しました！");
-  };
+    // まだ入っていなければ追加
+    if (!unreadIds.includes(id)) {
+      unreadIds.push(id);
+    }
 
-  const goBack = () => {
-    window.location.href =
-      "/students/new/parent/login/parent";
+    localStorage.setItem(
+      "parentUnreadContactIds",
+      JSON.stringify(unreadIds)
+    );
+
+    // 入力欄を空にする
+    setReplyText({
+      ...replyText,
+      [id]: "",
+    });
+
+    alert("返信しました！");
   };
 
   return (
@@ -116,138 +98,113 @@ export default function ParentContactPage() {
           📩 お問い合わせ
         </h1>
 
-        {/* 新しいお問い合わせ */}
+        {contacts.length === 0 ? (
 
-        <div className="rounded-2xl bg-white p-6 shadow-md">
+          <div className="rounded-2xl bg-white p-6 text-center shadow-md">
 
-          <p className="mb-6 text-gray-600">
-            ご質問やご相談がありましたら、
-            下記からお問い合わせください。
-          </p>
-
-          <div className="mb-5">
-
-            <label className="mb-2 block font-bold">
-              お名前
-            </label>
-
-            <input
-              type="text"
-              value={name}
-              readOnly
-              className="w-full rounded-lg border bg-gray-100 p-3"
-            />
+            <p className="text-gray-600">
+              お問い合わせはありません。
+            </p>
 
           </div>
 
-          <div>
+        ) : (
 
-            <label className="mb-2 block font-bold">
-              お問い合わせ内容
-            </label>
+          <div className="space-y-5">
 
-            <textarea
-              value={message}
-              onChange={(e) =>
-                setMessage(e.target.value)
-              }
-              placeholder="お問い合わせ内容を入力してください"
-              rows={6}
-              className="w-full rounded-lg border p-3"
-            />
+            {contacts.map((contact) => (
 
-          </div>
+              <div
+                key={contact.id}
+                className="rounded-2xl bg-white p-6 shadow-md"
+              >
 
-          <button
-            onClick={handleSubmit}
-            className="mt-6 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
-          >
-            送信する
-          </button>
+                {/* 生徒名 */}
+                <h2 className="mb-4 text-xl font-bold">
+                  👤 {contact.name}さん
+                </h2>
 
-        </div>
+                {/* お問い合わせ内容 */}
+                <div className="mb-4">
 
-        {/* お問い合わせ履歴 */}
-
-        <div className="mt-6">
-
-          <h2 className="mb-4 text-xl font-bold text-orange-600">
-            📬 お問い合わせ履歴
-          </h2>
-
-          {contacts.length === 0 ? (
-
-            <div className="rounded-2xl bg-white p-5 shadow-md">
-
-              <p className="text-gray-600">
-                お問い合わせ履歴はありません。
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="space-y-4">
-
-              {contacts.map((contact) => (
-
-                <div
-                  key={contact.id}
-                  className="rounded-2xl bg-white p-5 shadow-md"
-                >
-
-                  <p className="text-sm text-gray-500">
-                    {contact.date}
+                  <p className="font-bold text-gray-600">
+                    お問い合わせ内容
                   </p>
 
-                  <p className="mt-3 font-bold text-gray-600">
-                    お問い合わせ
-                  </p>
-
-                  <p className="mt-2 rounded-lg bg-gray-50 p-3">
+                  <p className="mt-2 rounded-lg bg-gray-50 p-4">
                     {contact.message}
                   </p>
 
-                  {contact.reply ? (
+                </div>
 
-                    <div className="mt-4">
+                {/* 返信 */}
+                <div>
 
-                      <p className="font-bold text-orange-600">
-                        👩‍🏫 先生からの返信
-                      </p>
+                  <p className="font-bold text-gray-600">
+                    返信
+                  </p>
 
-                      <p className="mt-2 rounded-lg bg-orange-50 p-3">
-                        {contact.reply}
-                      </p>
+                  <textarea
+                    value={
+                      replyText[contact.id] || ""
+                    }
+                    onChange={(e) =>
+                      setReplyText({
+                        ...replyText,
+                        [contact.id]: e.target.value,
+                      })
+                    }
+                    placeholder="返信内容を入力してください"
+                    className="mt-2 w-full rounded-lg border p-3"
+                    rows={4}
+                  />
 
-                    </div>
-
-                  ) : (
-
-                    <p className="mt-4 text-sm text-gray-500">
-                      先生からの返信をお待ちください。
-                    </p>
-
-                  )}
+                  <button
+                    onClick={() =>
+                      sendReply(contact.id)
+                    }
+                    className="mt-3 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
+                  >
+                    返信する
+                  </button>
 
                 </div>
 
-              ))}
+                {/* 現在の返信 */}
+                {contact.reply && (
 
-            </div>
+                  <div className="mt-5">
 
-          )}
+                    <p className="font-bold text-gray-600">
+                      現在の返信
+                    </p>
+
+                    <p className="mt-2 rounded-lg bg-orange-50 p-4">
+                      {contact.reply}
+                    </p>
+
+                  </div>
+
+                )}
+
+              </div>
+
+            ))}
+
+          </div>
+
+        )}
+
+        <div className="mt-8">
+
+          <Link
+            href="/teacher/home"
+            className="block w-full rounded-xl border border-orange-500 py-3 text-center font-bold text-orange-500"
+          >
+            ↩︎ 先生ページに戻る
+          </Link>
 
         </div>
-
-        {/* トップページに戻る */}
-
-        <button
-          onClick={goBack}
-          className="mt-6 w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"
-        >
-          トップページに戻る
-        </button>
 
       </div>
 
