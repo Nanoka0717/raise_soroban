@@ -16,57 +16,85 @@ export default function ParentContactPage() {
   const [message, setMessage] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
 
-  useEffect(() => {
+  const loadContacts = () => {
     const studentName =
       localStorage.getItem("parentStudentName") || "";
 
     setName(studentName);
 
-    loadContacts(studentName);
-
-    // この画面を開いたら先生からの返信を既読にする
-    const unreadIds: number[] = JSON.parse(
-      localStorage.getItem(
-        "parentUnreadContactIds"
-      ) || "[]"
-    );
-
-    if (unreadIds.length > 0) {
-      localStorage.setItem(
-        "parentUnreadContactIds",
-        JSON.stringify([])
-      );
-    }
-  }, []);
-
-  const loadContacts = (studentName: string) => {
     const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
     const myContacts = savedContacts.filter(
-      (contact) =>
+      (contact: Contact) =>
         contact.name === studentName
     );
 
     setContacts(myContacts);
   };
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    loadContacts();
+
+    /*
+     * この画面を開いた＝
+     * 保護者が先生からの返信を確認した
+     */
+
+    const studentName =
+      localStorage.getItem("parentStudentName") || "";
+
+    const savedContacts: Contact[] = JSON.parse(
+      localStorage.getItem("contacts") || "[]"
+    );
+
+    const myContacts = savedContacts.filter(
+      (contact: Contact) =>
+        contact.name === studentName &&
+        contact.reply &&
+        contact.reply.trim() !== ""
+    );
+
+    const oldReadIds: number[] = JSON.parse(
+      localStorage.getItem("parentReadContactIds") || "[]"
+    );
+
+    const newReadIds = [...oldReadIds];
+
+    myContacts.forEach((contact) => {
+      if (!newReadIds.includes(contact.id)) {
+        newReadIds.push(contact.id);
+      }
+    });
+
+    localStorage.setItem(
+      "parentReadContactIds",
+      JSON.stringify(newReadIds)
+    );
+
+    // 画面を開いたので通知を更新
+    window.dispatchEvent(new Event("storage"));
+  }, []);
+
+  /*
+   * 保護者から新しいお問い合わせを送信
+   */
+  const sendMessage = () => {
     if (!message.trim()) {
-      alert("お問い合わせ内容を入力してください");
+      alert("お問い合わせ内容を入力してください。");
       return;
     }
 
     if (!name) {
-      alert("お子様の名前が確認できません");
+      alert("お子様の名前が確認できません。");
       return;
     }
 
     const newContact: Contact = {
       id: Date.now(),
       name: name,
-      message: message,
+      message: message.trim(),
       date: new Date().toLocaleString("ja-JP"),
       reply: "",
     };
@@ -75,14 +103,31 @@ export default function ParentContactPage() {
       localStorage.getItem("contacts") || "[]"
     );
 
-    const newContacts = [
+    const updatedContacts = [
       ...oldContacts,
       newContact,
     ];
 
     localStorage.setItem(
       "contacts",
-      JSON.stringify(newContacts)
+      JSON.stringify(updatedContacts)
+    );
+
+    /*
+     * 先生側の新着通知
+     */
+    const teacherReadIds: number[] = JSON.parse(
+      localStorage.getItem("teacherReadContactIds") || "[]"
+    );
+
+    const newTeacherReadIds =
+      teacherReadIds.filter(
+        (id) => id !== newContact.id
+      );
+
+    localStorage.setItem(
+      "teacherReadContactIds",
+      JSON.stringify(newTeacherReadIds)
     );
 
     setContacts([
@@ -92,24 +137,7 @@ export default function ParentContactPage() {
 
     setMessage("");
 
-    // 先生側に新着を付ける
-    const teacherReadIds: number[] = JSON.parse(
-      localStorage.getItem(
-        "teacherReadContactIds"
-      ) || "[]"
-    );
-
-    const updatedTeacherReadIds =
-      teacherReadIds.filter(
-        (id) => id !== newContact.id
-      );
-
-    localStorage.setItem(
-      "teacherReadContactIds",
-      JSON.stringify(updatedTeacherReadIds)
-    );
-
-    alert("お問い合わせを送信しました！");
+    alert("送信しました！");
   };
 
   const goBack = () => {
@@ -122,44 +150,35 @@ export default function ParentContactPage() {
 
       <div className="mx-auto max-w-md">
 
-        {/* タイトル */}
         <h1 className="mb-6 text-center text-3xl font-bold text-orange-500">
           📩 お問い合わせ
         </h1>
 
-        {/* トーク画面 */}
+        {/* LINE風トーク */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-md">
 
-          {/* 相手の名前 */}
+          {/* ヘッダー */}
           <div className="border-b bg-white px-5 py-4">
 
             <h2 className="text-xl font-bold">
               👩‍🏫 先生とのトーク
             </h2>
 
-            {name && (
-              <p className="mt-1 text-sm text-gray-500">
-                {name}さん
-              </p>
-            )}
+            <p className="mt-1 text-sm text-gray-500">
+              {name}さん
+            </p>
 
           </div>
 
           {/* メッセージ一覧 */}
-          <div className="space-y-4 bg-gray-100 p-4">
+          <div className="min-h-[400px] space-y-5 bg-gray-100 p-4">
 
             {contacts.length === 0 ? (
 
-              <div className="py-10 text-center">
-
+              <div className="py-20 text-center">
                 <p className="text-gray-500">
-                  まだお問い合わせはありません。
+                  まだメッセージはありません。
                 </p>
-
-                <p className="mt-2 text-sm text-gray-400">
-                  下から先生にお問い合わせできます。
-                </p>
-
               </div>
 
             ) : (
@@ -173,7 +192,7 @@ export default function ParentContactPage() {
                     {contact.date}
                   </p>
 
-                  {/* 保護者のメッセージ */}
+                  {/* 保護者 */}
                   <div className="flex justify-end">
 
                     <div className="max-w-[80%]">
@@ -182,9 +201,9 @@ export default function ParentContactPage() {
                         保護者
                       </p>
 
-                      <div className="rounded-2xl rounded-tr-sm bg-orange-500 px-4 py-3 text-white shadow-sm">
+                      <div className="rounded-2xl rounded-tr-sm bg-green-400 px-4 py-3 shadow-sm">
 
-                        <p className="whitespace-pre-wrap">
+                        <p className="whitespace-pre-wrap break-words">
                           {contact.message}
                         </p>
 
@@ -194,8 +213,9 @@ export default function ParentContactPage() {
 
                   </div>
 
-                  {/* 先生の返信 */}
-                  {contact.reply && (
+                  {/* 先生 */}
+                  {contact.reply &&
+                    contact.reply.trim() !== "" && (
 
                     <div className="mt-3 flex justify-start">
 
@@ -207,7 +227,7 @@ export default function ParentContactPage() {
 
                         <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm">
 
-                          <p className="whitespace-pre-wrap">
+                          <p className="whitespace-pre-wrap break-words">
                             {contact.reply}
                           </p>
 
@@ -227,12 +247,8 @@ export default function ParentContactPage() {
 
           </div>
 
-          {/* 新しいメッセージ入力 */}
+          {/* 送信欄 */}
           <div className="border-t bg-white p-4">
-
-            <p className="mb-2 font-bold text-gray-600">
-              メッセージを送る
-            </p>
 
             <textarea
               value={message}
@@ -245,8 +261,8 @@ export default function ParentContactPage() {
             />
 
             <button
-              onClick={handleSubmit}
-              className="mt-3 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
+              onClick={sendMessage}
+              className="mt-3 w-full rounded-xl bg-orange-500 py-3 text-lg font-bold text-white"
             >
               送信する
             </button>
@@ -255,7 +271,7 @@ export default function ParentContactPage() {
 
         </div>
 
-        {/* トップページに戻る */}
+        {/* 戻る */}
         <button
           onClick={goBack}
           className="mt-6 w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"

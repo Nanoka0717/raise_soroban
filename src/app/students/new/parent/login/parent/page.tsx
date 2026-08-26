@@ -3,6 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+type Contact = {
+  id: number;
+  name: string;
+  message: string;
+  date: string;
+  reply: string;
+};
+
 export default function ParentPage() {
   const [name, setName] = useState("");
   const [hasNotification, setHasNotification] = useState(false);
@@ -13,11 +21,25 @@ export default function ParentPage() {
 
     setName(studentName);
 
-    const unreadIds: number[] = JSON.parse(
-      localStorage.getItem("parentUnreadContactIds") || "[]"
+    const contacts: Contact[] = JSON.parse(
+      localStorage.getItem("contacts") || "[]"
     );
 
-    setHasNotification(unreadIds.length > 0);
+    // 保護者側で既読にしたID
+    const readIds: number[] = JSON.parse(
+      localStorage.getItem("parentReadContactIds") || "[]"
+    );
+
+    // 先生から返信があり、まだ読んでいないもの
+    const unreadReply = contacts.some(
+      (contact) =>
+        contact.name === studentName &&
+        contact.reply &&
+        contact.reply.trim() !== "" &&
+        !readIds.includes(contact.id)
+    );
+
+    setHasNotification(unreadReply);
   };
 
   useEffect(() => {
@@ -93,6 +115,7 @@ export default function ParentPage() {
 
         {/* お問い合わせ */}
         <Link href="/students/new/parent/login/parent/contact">
+
           <div className="relative rounded-xl bg-white p-5 shadow-md">
 
             ✉️ お問い合わせ
@@ -104,6 +127,7 @@ export default function ParentPage() {
             )}
 
           </div>
+
         </Link>
 
       </div>
