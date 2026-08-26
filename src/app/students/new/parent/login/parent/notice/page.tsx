@@ -6,7 +6,7 @@ import Link from "next/link";
 type Notice = {
   id: number;
   title: string;
-  message: string;
+  content: string;
   date: string;
 };
 
@@ -14,28 +14,60 @@ export default function ParentNoticePage() {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   useEffect(() => {
-    // お知らせを取得
-    const savedNotices: Notice[] = JSON.parse(
+    const savedNotices = JSON.parse(
       localStorage.getItem("notices") || "[]"
     );
 
-    setNotices(savedNotices);
+    // お知らせデータを整える
+    const fixedNotices: Notice[] = savedNotices.map(
+      (notice: any, index: number) => ({
+        id:
+          typeof notice.id === "number"
+            ? notice.id
+            : Date.now() + index,
 
-    // =========================
+        title:
+          typeof notice.title === "string"
+            ? notice.title
+            : "",
+
+        content:
+          typeof notice.content === "string"
+            ? notice.content
+            : "",
+
+        date:
+          typeof notice.date === "string"
+            ? notice.date
+            : "",
+      })
+    );
+
+    setNotices(fixedNotices);
+
+    // ==========================
     // お知らせを既読にする
-    // =========================
+    // ==========================
 
-    const readNoticeIds = savedNotices.map(
+    const readNoticeIds: number[] = JSON.parse(
+      localStorage.getItem("parentReadNoticeIds") || "[]"
+    );
+
+    const allNoticeIds = fixedNotices.map(
       (notice) => notice.id
+    );
+
+    const newReadNoticeIds = Array.from(
+      new Set([
+        ...readNoticeIds,
+        ...allNoticeIds,
+      ])
     );
 
     localStorage.setItem(
       "parentReadNoticeIds",
-      JSON.stringify(readNoticeIds)
+      JSON.stringify(newReadNoticeIds)
     );
-
-    // 保護者トップに更新を知らせる
-    window.dispatchEvent(new Event("storage"));
   }, []);
 
   return (
@@ -44,7 +76,7 @@ export default function ParentNoticePage() {
       <div className="mx-auto max-w-md">
 
         {/* タイトル */}
-        <h1 className="mb-6 text-center text-3xl font-bold text-orange-500">
+        <h1 className="mb-8 text-center text-3xl font-bold text-orange-500">
           📢 お知らせ
         </h1>
 
@@ -52,22 +84,20 @@ export default function ParentNoticePage() {
         {notices.length === 0 ? (
 
           <div className="rounded-2xl bg-white p-6 text-center shadow-md">
-
             <p className="text-gray-600">
-              現在、お知らせはありません。
+              お知らせはありません。
             </p>
-
           </div>
 
         ) : (
 
-          <div className="space-y-4">
+          <div className="space-y-5">
 
             {notices.map((notice) => (
 
               <div
                 key={notice.id}
-                className="rounded-2xl bg-white p-5 shadow-md"
+                className="rounded-2xl bg-white p-6 shadow-md"
               >
 
                 {/* 日付 */}
@@ -76,14 +106,18 @@ export default function ParentNoticePage() {
                 </p>
 
                 {/* タイトル */}
-                <h2 className="mt-2 text-xl font-bold text-orange-600">
+                <h2 className="mt-3 text-2xl font-bold text-orange-600">
                   {notice.title}
                 </h2>
 
-                {/* 内容 */}
-                <p className="mt-3 whitespace-pre-wrap text-gray-700">
-                  {notice.message}
-                </p>
+                {/* お知らせ内容 */}
+                <div className="mt-4 rounded-xl bg-orange-50 p-4">
+
+                  <p className="whitespace-pre-wrap leading-7 text-gray-800">
+                    {notice.content || "お知らせ内容はありません。"}
+                  </p>
+
+                </div>
 
               </div>
 

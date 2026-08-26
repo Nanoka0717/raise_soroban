@@ -20,10 +20,28 @@ export default function TeacherNoticePage() {
       localStorage.getItem("notices") || "[]"
     );
 
-    setNotices(savedNotices);
+    // 古いお知らせにIDがない場合はIDを追加
+    const fixedNotices = savedNotices.map(
+      (notice: any, index: number) => ({
+        id:
+          typeof notice.id === "number"
+            ? notice.id
+            : Date.now() + index,
+        title: notice.title,
+        content: notice.content,
+        date: notice.date,
+      })
+    );
+
+    localStorage.setItem(
+      "notices",
+      JSON.stringify(fixedNotices)
+    );
+
+    setNotices(fixedNotices);
   }, []);
 
-  const savedNotice = () => {
+  const saveNotice = () => {
     if (!title.trim() || !content.trim()) {
       alert("タイトルと内容を入力してください。");
       return;
@@ -47,7 +65,6 @@ export default function TeacherNoticePage() {
     );
 
     setNotices(updatedNotices);
-
     setTitle("");
     setContent("");
 
@@ -64,26 +81,29 @@ export default function TeacherNoticePage() {
         </h1>
 
         {/* お知らせ登録 */}
-
         <div className="mb-6 rounded-xl bg-white p-6 shadow-md">
 
           <input
             type="text"
             placeholder="タイトル"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) =>
+              setTitle(e.target.value)
+            }
             className="mb-4 w-full rounded-lg border p-3"
           />
 
           <textarea
             placeholder="お知らせ内容を入力してください"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) =>
+              setContent(e.target.value)
+            }
             className="mb-4 h-40 w-full rounded-lg border p-3"
           />
 
           <button
-            onClick={savedNotice}
+            onClick={saveNotice}
             className="w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
           >
             登録する
@@ -92,7 +112,6 @@ export default function TeacherNoticePage() {
         </div>
 
         {/* 登録済みのお知らせ */}
-
         <h2 className="mb-4 text-2xl font-bold">
           登録済みのお知らせ
         </h2>
@@ -118,7 +137,7 @@ export default function TeacherNoticePage() {
                   {notice.date}
                 </p>
 
-                <h3 className="mt-1 text-lg font-bold">
+                <h3 className="mt-1 text-lg font-bold text-orange-600">
                   {notice.title}
                 </h3>
 
@@ -135,7 +154,6 @@ export default function TeacherNoticePage() {
         </div>
 
         {/* 先生ページに戻る */}
-
         <div className="mt-8">
 
           <Link
