@@ -11,200 +11,257 @@ type Contact = {
   reply: string;
 };
 
-export default function TeacherContactPage() {
+export default function ParentContactPage() {
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
 
-  const [replyText, setReplyText] = useState<{
-    [key: number]: string;
-  }>({});
-
   useEffect(() => {
+    const studentName =
+      localStorage.getItem("parentStudentName") || "";
+
+    setName(studentName);
+
+    loadContacts(studentName);
+
+    // この画面を開いたら先生からの返信を既読にする
+    const unreadIds: number[] = JSON.parse(
+      localStorage.getItem(
+        "parentUnreadContactIds"
+      ) || "[]"
+    );
+
+    if (unreadIds.length > 0) {
+      localStorage.setItem(
+        "parentUnreadContactIds",
+        JSON.stringify([])
+      );
+    }
+  }, []);
+
+  const loadContacts = (studentName: string) => {
     const savedContacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    setContacts(savedContacts);
-
-    // 先生が見たお問い合わせを既読にする
-    const readIds = savedContacts.map(
-      (contact: Contact) => contact.id
+    const myContacts = savedContacts.filter(
+      (contact) =>
+        contact.name === studentName
     );
 
-    localStorage.setItem(
-      "teacherReadContactIds",
-      JSON.stringify(readIds)
-    );
-  }, []);
+    setContacts(myContacts);
+  };
 
-  const sendReply = (id: number) => {
-    const text = replyText[id];
-
-    if (!text || !text.trim()) {
-      alert("返信内容を入力してください。");
+  const handleSubmit = () => {
+    if (!message.trim()) {
+      alert("お問い合わせ内容を入力してください");
       return;
     }
 
-    // お問い合わせを更新
-    const updatedContacts = contacts.map(
-      (contact) =>
-        contact.id === id
-          ? {
-              ...contact,
-              reply: text,
-            }
-          : contact
+    if (!name) {
+      alert("お子様の名前が確認できません");
+      return;
+    }
+
+    const newContact: Contact = {
+      id: Date.now(),
+      name: name,
+      message: message,
+      date: new Date().toLocaleString("ja-JP"),
+      reply: "",
+    };
+
+    const oldContacts: Contact[] = JSON.parse(
+      localStorage.getItem("contacts") || "[]"
     );
 
-    setContacts(updatedContacts);
+    const newContacts = [
+      ...oldContacts,
+      newContact,
+    ];
 
     localStorage.setItem(
       "contacts",
-      JSON.stringify(updatedContacts)
+      JSON.stringify(newContacts)
     );
 
-    // =====================================
-    // 保護者側に「新着」を付ける
-    // =====================================
+    setContacts([
+      ...contacts,
+      newContact,
+    ]);
 
-    const unreadIds: number[] = JSON.parse(
-      localStorage.getItem("parentUnreadContactIds") || "[]"
+    setMessage("");
+
+    // 先生側に新着を付ける
+    const teacherReadIds: number[] = JSON.parse(
+      localStorage.getItem(
+        "teacherReadContactIds"
+      ) || "[]"
     );
 
-    // まだ入っていなければ追加
-    if (!unreadIds.includes(id)) {
-      unreadIds.push(id);
-    }
+    const updatedTeacherReadIds =
+      teacherReadIds.filter(
+        (id) => id !== newContact.id
+      );
 
     localStorage.setItem(
-      "parentUnreadContactIds",
-      JSON.stringify(unreadIds)
+      "teacherReadContactIds",
+      JSON.stringify(updatedTeacherReadIds)
     );
 
-    // 入力欄を空にする
-    setReplyText({
-      ...replyText,
-      [id]: "",
-    });
+    alert("お問い合わせを送信しました！");
+  };
 
-    alert("返信しました！");
+  const goBack = () => {
+    window.location.href =
+      "/students/new/parent/login/parent";
   };
 
   return (
-    <main className="min-h-screen bg-orange-50 p-6">
+    <main className="min-h-screen bg-orange-50 p-4">
 
       <div className="mx-auto max-w-md">
 
+        {/* タイトル */}
         <h1 className="mb-6 text-center text-3xl font-bold text-orange-500">
           📩 お問い合わせ
         </h1>
 
-        {contacts.length === 0 ? (
+        {/* トーク画面 */}
+        <div className="overflow-hidden rounded-2xl bg-white shadow-md">
 
-          <div className="rounded-2xl bg-white p-6 text-center shadow-md">
+          {/* 相手の名前 */}
+          <div className="border-b bg-white px-5 py-4">
 
-            <p className="text-gray-600">
-              お問い合わせはありません。
-            </p>
+            <h2 className="text-xl font-bold">
+              👩‍🏫 先生とのトーク
+            </h2>
+
+            {name && (
+              <p className="mt-1 text-sm text-gray-500">
+                {name}さん
+              </p>
+            )}
 
           </div>
 
-        ) : (
+          {/* メッセージ一覧 */}
+          <div className="space-y-4 bg-gray-100 p-4">
 
-          <div className="space-y-5">
+            {contacts.length === 0 ? (
 
-            {contacts.map((contact) => (
+              <div className="py-10 text-center">
 
-              <div
-                key={contact.id}
-                className="rounded-2xl bg-white p-6 shadow-md"
-              >
+                <p className="text-gray-500">
+                  まだお問い合わせはありません。
+                </p>
 
-                {/* 生徒名 */}
-                <h2 className="mb-4 text-xl font-bold">
-                  👤 {contact.name}さん
-                </h2>
-
-                {/* お問い合わせ内容 */}
-                <div className="mb-4">
-
-                  <p className="font-bold text-gray-600">
-                    お問い合わせ内容
-                  </p>
-
-                  <p className="mt-2 rounded-lg bg-gray-50 p-4">
-                    {contact.message}
-                  </p>
-
-                </div>
-
-                {/* 返信 */}
-                <div>
-
-                  <p className="font-bold text-gray-600">
-                    返信
-                  </p>
-
-                  <textarea
-                    value={
-                      replyText[contact.id] || ""
-                    }
-                    onChange={(e) =>
-                      setReplyText({
-                        ...replyText,
-                        [contact.id]: e.target.value,
-                      })
-                    }
-                    placeholder="返信内容を入力してください"
-                    className="mt-2 w-full rounded-lg border p-3"
-                    rows={4}
-                  />
-
-                  <button
-                    onClick={() =>
-                      sendReply(contact.id)
-                    }
-                    className="mt-3 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
-                  >
-                    返信する
-                  </button>
-
-                </div>
-
-                {/* 現在の返信 */}
-                {contact.reply && (
-
-                  <div className="mt-5">
-
-                    <p className="font-bold text-gray-600">
-                      現在の返信
-                    </p>
-
-                    <p className="mt-2 rounded-lg bg-orange-50 p-4">
-                      {contact.reply}
-                    </p>
-
-                  </div>
-
-                )}
+                <p className="mt-2 text-sm text-gray-400">
+                  下から先生にお問い合わせできます。
+                </p>
 
               </div>
 
-            ))}
+            ) : (
+
+              contacts.map((contact) => (
+
+                <div key={contact.id}>
+
+                  {/* 日付 */}
+                  <p className="mb-2 text-center text-xs text-gray-500">
+                    {contact.date}
+                  </p>
+
+                  {/* 保護者のメッセージ */}
+                  <div className="flex justify-end">
+
+                    <div className="max-w-[80%]">
+
+                      <p className="mb-1 text-right text-xs text-gray-500">
+                        保護者
+                      </p>
+
+                      <div className="rounded-2xl rounded-tr-sm bg-orange-500 px-4 py-3 text-white shadow-sm">
+
+                        <p className="whitespace-pre-wrap">
+                          {contact.message}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* 先生の返信 */}
+                  {contact.reply && (
+
+                    <div className="mt-3 flex justify-start">
+
+                      <div className="max-w-[80%]">
+
+                        <p className="mb-1 text-xs text-gray-500">
+                          先生
+                        </p>
+
+                        <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm">
+
+                          <p className="whitespace-pre-wrap">
+                            {contact.reply}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              ))
+
+            )}
 
           </div>
 
-        )}
+          {/* 新しいメッセージ入力 */}
+          <div className="border-t bg-white p-4">
 
-        <div className="mt-8">
+            <p className="mb-2 font-bold text-gray-600">
+              メッセージを送る
+            </p>
 
-          <Link
-            href="/teacher/home"
-            className="block w-full rounded-xl border border-orange-500 py-3 text-center font-bold text-orange-500"
-          >
-            ↩︎ 先生ページに戻る
-          </Link>
+            <textarea
+              value={message}
+              onChange={(e) =>
+                setMessage(e.target.value)
+              }
+              placeholder="メッセージを入力してください"
+              rows={3}
+              className="w-full rounded-xl border p-3"
+            />
+
+            <button
+              onClick={handleSubmit}
+              className="mt-3 w-full rounded-xl bg-orange-500 py-3 font-bold text-white"
+            >
+              送信する
+            </button>
+
+          </div>
 
         </div>
+
+        {/* トップページに戻る */}
+        <button
+          onClick={goBack}
+          className="mt-6 w-full rounded-xl border border-orange-500 py-3 font-bold text-orange-500"
+        >
+          ↩︎ トップページに戻る
+        </button>
 
       </div>
 
