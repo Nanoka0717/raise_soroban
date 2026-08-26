@@ -18,7 +18,6 @@ export default function ParentNoticePage() {
       localStorage.getItem("notices") || "[]"
     );
 
-    // お知らせデータを整える
     const fixedNotices: Notice[] = savedNotices.map(
       (notice: any, index: number) => ({
         id:
@@ -84,44 +83,86 @@ export default function ParentNoticePage() {
         {notices.length === 0 ? (
 
           <div className="rounded-2xl bg-white p-6 text-center shadow-md">
+
             <p className="text-gray-600">
               お知らせはありません。
             </p>
+
           </div>
 
         ) : (
 
           <div className="space-y-5">
 
-            {notices.map((notice) => (
+            {notices.map((notice, index) => {
 
-              <div
-                key={notice.id}
-                className="rounded-2xl bg-white p-6 shadow-md"
-              >
+              // 一番上が最新のお知らせ
+              const isLatest = index === 0;
 
-                {/* 日付 */}
-                <p className="text-sm text-gray-500">
-                  {notice.date}
-                </p>
+              return (
+                <div
+                  key={notice.id}
+                  className={
+                    isLatest
+                      ? "rounded-2xl bg-white p-6 shadow-lg"
+                      : "rounded-xl bg-white p-4 shadow-sm"
+                  }
+                >
 
-                {/* タイトル */}
-                <h2 className="mt-3 text-2xl font-bold text-orange-600">
-                  {notice.title}
-                </h2>
+                  {/* 最新のお知らせ表示 */}
+                  {isLatest && (
+                    <span className="inline-block rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                      最新のお知らせ
+                    </span>
+                  )}
 
-                {/* お知らせ内容 */}
-                <div className="mt-4 rounded-xl bg-orange-50 p-4">
-
-                  <p className="whitespace-pre-wrap leading-7 text-gray-800">
-                    {notice.content || "お知らせ内容はありません。"}
+                  {/* 日付 */}
+                  <p
+                    className={
+                      isLatest
+                        ? "mt-3 text-sm text-gray-500"
+                        : "text-xs text-gray-400"
+                    }
+                  >
+                    {notice.date}
                   </p>
 
+                  {/* タイトル */}
+                  <h2
+                    className={
+                      isLatest
+                        ? "mt-2 text-2xl font-bold text-orange-600"
+                        : "mt-1 text-lg font-bold text-orange-500"
+                    }
+                  >
+                    {notice.title}
+                  </h2>
+
+                  {/* 内容 */}
+                  <div
+                    className={
+                      isLatest
+                        ? "mt-4 rounded-xl bg-orange-50 p-4"
+                        : "mt-2 rounded-lg bg-orange-50 p-3"
+                    }
+                  >
+
+                    <p
+                      className={
+                        isLatest
+                          ? "whitespace-pre-wrap text-base leading-7 text-gray-800"
+                          : "whitespace-pre-wrap text-sm leading-6 text-gray-700"
+                      }
+                    >
+                      {notice.content ||
+                        "お知らせ内容はありません。"}
+                    </p>
+
+                  </div>
+
                 </div>
-
-              </div>
-
-            ))}
+              );
+            })}
 
           </div>
 
