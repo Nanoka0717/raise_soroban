@@ -11,50 +11,83 @@ type Contact = {
   reply: string;
 };
 
+type Notice = {
+  id: number;
+  title: string;
+  message: string;
+  date: string;
+};
+
 export default function ParentPage() {
   const [name, setName] = useState("");
-  const [hasNotification, setHasNotification] = useState(false);
+  const [hasContactNotification, setHasContactNotification] =
+    useState(false);
 
-  const checkNotification = () => {
+  const [hasNoticeNotification, setHasNoticeNotification] =
+    useState(false);
+
+  const checkNotifications = () => {
     const studentName =
       localStorage.getItem("parentStudentName") || "";
 
     setName(studentName);
 
+    // =========================
+    // お問い合わせの新着
+    // =========================
+
     const contacts: Contact[] = JSON.parse(
       localStorage.getItem("contacts") || "[]"
     );
 
-    // 保護者側で既読にしたID
-    const readIds: number[] = JSON.parse(
+    const readContactIds: number[] = JSON.parse(
       localStorage.getItem("parentReadContactIds") || "[]"
     );
 
-    // 先生から返信があり、まだ読んでいないもの
     const unreadReply = contacts.some(
       (contact) =>
         contact.name === studentName &&
         contact.reply &&
         contact.reply.trim() !== "" &&
-        !readIds.includes(contact.id)
+        !readContactIds.includes(contact.id)
     );
 
-    setHasNotification(unreadReply);
+    setHasContactNotification(unreadReply);
+
+    // =========================
+    // お知らせの新着
+    // =========================
+
+    const notices: Notice[] = JSON.parse(
+      localStorage.getItem("notices") || "[]"
+    );
+
+    const readNoticeIds: number[] = JSON.parse(
+      localStorage.getItem("parentReadNoticeIds") || "[]"
+    );
+
+    // 1つでも未読のお知らせがあれば「新着」
+    const unreadNotice = notices.some(
+      (notice) =>
+        !readNoticeIds.includes(notice.id)
+    );
+
+    setHasNoticeNotification(unreadNotice);
   };
 
   useEffect(() => {
-    checkNotification();
+    checkNotifications();
 
     const handleFocus = () => {
-      checkNotification();
+      checkNotifications();
     };
 
     const handlePageShow = () => {
-      checkNotification();
+      checkNotifications();
     };
 
     const handleStorage = () => {
-      checkNotification();
+      checkNotifications();
     };
 
     window.addEventListener("focus", handleFocus);
@@ -89,48 +122,94 @@ export default function ParentPage() {
 
       <div className="space-y-4">
 
-        <Link href="/students/new/parent/login/parent/notice">
-          <div className="rounded-xl bg-white p-5 shadow-md">
-            📢 お知らせ
-          </div>
-        </Link>
+        {/* =========================
+            お知らせ
+        ========================= */}
 
-        <Link href="/students/new/parent/login/parent/reservation/confirm">
-          <div className="rounded-xl bg-white p-5 shadow-md">
-            📅 予約内容の確認
-          </div>
-        </Link>
-
-        <Link href="/students/new/parent/login/parent/tuition">
-          <div className="rounded-xl bg-white p-5 shadow-md">
-            💰 月謝確認
-          </div>
-        </Link>
-
-        <Link href="/students/new/parent/login/parent/exam">
-          <div className="rounded-xl bg-white p-5 shadow-md">
-            🏆 検定結果
-          </div>
-        </Link>
-
-        {/* お問い合わせ */}
-        <Link href="/students/new/parent/login/parent/contact">
-
+        <Link
+          href="/students/new/parent/login/parent/notice"
+          className="block"
+        >
           <div className="relative rounded-xl bg-white p-5 shadow-md">
 
-            ✉️ お問い合わせ
+            <span>
+              📢 お知らせ
+            </span>
 
-            {hasNotification && (
+            {hasNoticeNotification && (
               <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
                 新着
               </span>
             )}
 
           </div>
+        </Link>
 
+        {/* =========================
+            予約内容の確認
+        ========================= */}
+
+        <Link
+          href="/students/new/parent/login/parent/reservation/confirm"
+          className="block"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
+            📅 予約内容の確認
+          </div>
+        </Link>
+
+        {/* =========================
+            月謝確認
+        ========================= */}
+
+        <Link
+          href="/students/new/parent/login/parent/tuition"
+          className="block"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
+            💰 月謝確認
+          </div>
+        </Link>
+
+        {/* =========================
+            検定結果
+        ========================= */}
+
+        <Link
+          href="/students/new/parent/login/parent/exam"
+          className="block"
+        >
+          <div className="rounded-xl bg-white p-5 shadow-md">
+            🏆 検定結果
+          </div>
+        </Link>
+
+        {/* =========================
+            お問い合わせ
+        ========================= */}
+
+        <Link
+          href="/students/new/parent/login/parent/contact"
+          className="block"
+        >
+          <div className="relative rounded-xl bg-white p-5 shadow-md">
+
+            <span>
+              ✉️ お問い合わせ
+            </span>
+
+            {hasContactNotification && (
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                新着
+              </span>
+            )}
+
+          </div>
         </Link>
 
       </div>
+
+      {/* ログイン画面へ戻る */}
 
       <div className="mt-8">
 
